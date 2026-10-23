@@ -1,0 +1,77 @@
+.team-page {
+  width: 100%;
+}
+
+.team-header {
+  margin-bottom: 24px;
+}
+
+.team-header h1 {
+  margin-bottom: 8px;
+}
+
+.team-header p {
+  color: #71717a;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.team-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 20px;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  background: white;
+  text-align: center;
+}
+
+.team-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #d1fae5;
+  color: #047857;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.team-card h3 {
+  margin-bottom: 6px;
+}
+
+.team-card p {
+  color: #71717a;
+  overflow-wrap: anywhere;
+}
+
+.team-role {
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #d1fae5;
+  color: #047857;
+  font-size: 13px;
+}
+
+.team-error {
+  padding: 12px;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.team-empty {
+  padding: 30px;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  background: white;
+  text-align: center;
+}

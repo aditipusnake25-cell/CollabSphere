@@ -1,0 +1,157 @@
+.activity-page {
+  min-height: 100vh;
+  padding: 35px;
+  background: #f5f7fb;
+  color: #1e293b;
+  font-family: Arial, sans-serif;
+}
+
+.activity-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.activity-header h1 {
+  margin: 0 0 10px;
+  font-size: 30px;
+}
+
+.activity-header p {
+  margin: 0;
+  color: #64748b;
+}
+
+.clear-activity-button,
+.demo-activity-button {
+  padding: 11px 15px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.clear-activity-button {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.clear-activity-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.activity-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.filter-button {
+  padding: 9px 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: white;
+  color: #475569;
+  cursor: pointer;
+}
+
+.filter-button.active {
+  border-color: #4f46e5;
+  background: #4f46e5;
+  color: white;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.activity-item {
+  display: flex;
+  gap: 15px;
+  padding: 22px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+}
+
+.activity-dot {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: #6366f1;
+}
+
+.activity-details {
+  min-width: 0;
+}
+
+.activity-type {
+  color: #4f46e5;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.activity-details h3 {
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+
+.activity-details p {
+  margin: 0 0 12px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.activity-details small {
+  color: #94a3b8;
+}
+
+.activity-empty {
+  padding: 35px 20px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: white;
+  text-align: center;
+}
+
+.activity-empty p {
+  color: #64748b;
+}
+
+.demo-activity-button {
+  margin-top: 22px;
+  background: #4f46e5;
+  color: white;
+}
+
+.demo-activity-button:hover {
+  background: #4338ca;
+}
+
+@media (max-width: 600px) {
+  .activity-page {
+    padding: 22px 16px;
+  }
+
+  .activity-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .activity-header h1 {
+    font-size: 26px;
+  }
+
+  .activity-item {
+    padding: 16px;
+  }
+}
