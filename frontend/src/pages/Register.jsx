@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { apiRequest } from "../services/api";
-import "../css/Auth.css";
+import "../css/auth.css";
 
 function Register() {
   const [form, setForm] = useState({
