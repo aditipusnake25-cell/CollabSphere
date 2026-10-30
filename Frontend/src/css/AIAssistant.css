@@ -1,0 +1,8 @@
+/* AIAssistant.css — AI response output */
+.ai-result { max-width: 900px; animation: fadeUp .5s ease both; }
+.ai-result pre {
+  overflow-wrap: anywhere; background: var(--gradient-soft); border: 1px solid var(--border);
+  border-left: 4px solid var(--primary); border-radius: var(--radius-md); padding: 20px 22px;
+  color: var(--text-body); box-shadow: var(--shadow-sm); transition: box-shadow var(--transition);
+}
+.ai-result pre:hover { box-shadow: var(--shadow-md); }

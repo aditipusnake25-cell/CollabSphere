@@ -1,0 +1,5 @@
+/* ProjectDetails.css — extends .detail-panel in App.css */
+.detail-panel { margin: 18px 0; animation: fadeUp .5s ease both; transition: box-shadow var(--transition), transform var(--transition); }
+.detail-panel:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.detail-panel h2 { margin-bottom: 12px; color: var(--primary-dark); }
+.member-list { margin-top: 12px; }
