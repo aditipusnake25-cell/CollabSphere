@@ -1,20 +1,34 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = (
+    import.meta.env.VITE_API_URL || "http://localhost:5000"
+).replace(/\/+$/, "");
 
 export async function apiRequest(path, options = {}) {
     const token = localStorage.getItem("collabsphere_token");
+
     const headers = { ...(options.headers || {}) };
 
     if (!(options.body instanceof FormData) && options.body) {
         headers["Content-Type"] = "application/json";
     }
-    if (token) headers.Authorization = `Bearer ${token}`;
 
-    const response = await fetch(`${API_URL}${path}`, { ...options, headers });
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Normalize API path to avoid double slashes
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+    const response = await fetch(`${API_URL}/api${cleanPath}`, {
+        ...options,
+        headers,
+    });
+
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-        throw new Error(data.message || "Something went wrong");
+        throw new Error(data.message || `Request failed: ${response.status}`);
     }
+
     return data;
 }
 
@@ -25,7 +39,9 @@ export function saveSession(data) {
 
 export function getSavedUser() {
     try {
-        return JSON.parse(localStorage.getItem("collabsphere_user") || "null");
+        return JSON.parse(
+            localStorage.getItem("collabsphere_user") || "null"
+        );
     } catch {
         return null;
     }
