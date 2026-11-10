@@ -1,17 +1,10 @@
-import express from "express"
-import authMiddleware from "../middleware/authMiddleware.js"
-import { explainCode , generateReadme,generateDocumentation } from "../controllers/geminiController.js"
+import express from "express";
+import authMiddleware from "../middleware/authMiddleware.js";
+import { explainContent, generateDocs, generateReadme } from "../controllers/geminiController.js";
 
-const router = express.Router()
-
-router.post("/explain", authMiddleware, explainCode)
-router.post("/docs", authMiddleware, generateDocumentation)
-router.post("/readme", authMiddleware, generateReadme)
-
-router.post("/explain-code", authMiddleware, explainCode)
-
-router.post("/generate-readme",authMiddleware,generateReadme)
-
-router.post("/generate-documentation", authMiddleware,generateDocumentation)
-
-export default router 
+const router = express.Router();
+router.use(authMiddleware);
+router.post("/explain", explainContent);
+router.post("/docs", generateDocs);
+router.post("/readme", generateReadme);
+export default router;

@@ -1,98 +1,17 @@
+import React from "react";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { apiRequest } from "../services/api";
-import "../css/Projects.css";
+import { apiRequest } from "../services/api.js";
 
-function PublicProject() {
-  const { id } = useParams();
-  const [project, setProject] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+export default function PublicProject({ projectId }) {
+    const [project, setProject] = useState(null);
+    const [error, setError] = useState("");
+    useEffect(() => {
+        apiRequest(`/projects/public/${projectId}`)
+            .then(data => setProject(data.project))
+            .catch(err => setError(err.message));
+    }, [projectId]);
 
-  useEffect(() => {
-    let active = true;
-
-    async function loadProject() {
-      setLoading(true);
-      setError("");
-      try {
-        const response = await apiRequest(`/projects/public/${id}`);
-        if (active) setProject(response.project || null);
-      } catch (requestError) {
-        if (active) {
-          setError(requestError.message || "Unable to load this public project.");
-        }
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-
-    loadProject();
-    return () => {
-      active = false;
-    };
-  }, [id]);
-
-  return (
-    <main className="projects-page public-project-page">
-      <div className="public-project-content">
-        <header className="public-project-header">
-          <a href="/" className="public-project-brand"><span className="public-brand-mark">C</span>CollabSphere</a>
-          <span>Public project</span>
-        </header>
-
-      {loading ? (
-        <p>Loading project...</p>
-      ) : error ? (
-        <section className="empty-projects" role="alert">
-          <h1>Project unavailable</h1>
-          <p>{error}</p>
-        </section>
-      ) : project ? (
-        <article className="project-card">
-          <span className="eyebrow">PROJECT SHOWCASE · {project.status || "ACTIVE"}</span>
-          <h1>{project.name}</h1>
-          <p className="project-description">
-            {project.description || "No description provided."}
-          </p>
-          {project.technology?.length > 0 && (
-            <section>
-              <h2>Technologies</h2>
-              <ul>
-                {project.technology.map((technology) => (
-                  <li key={technology}>{technology}</li>
-                ))}
-              </ul>
-            </section>
-          )}
-          {project.createdAt && (
-            <p>
-              Created {new Date(project.createdAt).toLocaleDateString()}
-            </p>
-          )}
-          {project.readme && (
-            <section>
-              <h2>README</h2>
-              <pre>{project.readme}</pre>
-            </section>
-          )}
-          {project.notes?.length > 0 && (
-            <section>
-              <h2>Public Notes</h2>
-              {project.notes.map((note) => (
-                <article className="public-project-note" key={note._id}>
-                  <h3>{note.title}</h3>
-                  <p>{note.content}</p>
-                </article>
-              ))}
-            </section>
-          )}
-          <p>This page is read-only.</p>
-        </article>
-      ) : null}
-      </div>
-    </main>
-  );
+    if (error) return <main className="public-page"><div className="empty-state">{error}</div></main>;
+    if (!project) return <main className="public-page">Loading project...</main>;
+    return <main className="public-page"><div className="public-content"><div className="brand"><span className="brand-mark">C</span> CollabSphere</div><p className="eyebrow">PUBLIC PROJECT</p><h1>{project.name}</h1><p>{project.description}</p><h2>Technologies</h2><div className="tag-list">{project.technology.map(t => <span className="tag" key={t}>{t}</span>)}</div><h2>Project notes</h2>{project.notes.map(note => <article className="note-card" key={note._id}><h3>{note.title}</h3><p>{note.content}</p></article>)}</div></main>;
 }
-
-export default PublicProject;

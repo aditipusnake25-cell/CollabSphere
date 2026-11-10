@@ -1,30 +1,11 @@
 import express from "express";
 import authMiddleware from "../middleware/authMiddleware.js";
-
-import {
-    uploadFile,
-    getProjectFiles,
-    getProjectFileContent,
-    deleteProjectFile,
-    authorizeProjectFileUpload
-} from "../controllers/fileController.js";
-
-import upload from "../middleware/uploadMiddleware.js";
+import uploadMiddleware from "../middleware/uploadMiddleware.js";
+import { uploadFile, getProjectFiles, deleteFile } from "../controllers/fileController.js";
 
 const router = express.Router();
-
-router.post(
-    "/:id/files",
-    authMiddleware,
-    authorizeProjectFileUpload,
-    upload.single("file"),
-    uploadFile
-);
-
-router.get("/:id/files", authMiddleware, getProjectFiles);
-
-router.get("/:id/files/:fileId/content", authMiddleware, getProjectFileContent);
-
-router.delete("/:id/files/:fileId", authMiddleware, deleteProjectFile);
-
+router.use(authMiddleware);
+router.post("/:projectId", uploadMiddleware.single("file"), uploadFile);
+router.get("/project/:projectId", getProjectFiles);
+router.delete("/:projectId/:fileId", deleteFile);
 export default router;

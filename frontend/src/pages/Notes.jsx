@@ -1,314 +1,36 @@
+import React from "react";
 import { useEffect, useState } from "react";
-import { apiRequest } from "../services/api";
-import NoteCard from "../components/NoteCard";
+import NoteCard from "../components/NoteCard.jsx";
 import "../css/Notes.css";
 
-function Notes() {
-  const [projects, setProjects] = useState([]);
-  const [projectId, setProjectId] = useState("");
-  const [notes, setNotes] = useState([]);
-  const [currentUserId, setCurrentUserId] = useState("");
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [editingId, setEditingId] = useState("");
-  const [loadingProjects, setLoadingProjects] = useState(true);
-  const [loadingNotes, setLoadingNotes] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [busyNoteId, setBusyNoteId] = useState("");
-  const [aiResult, setAiResult] = useState(null);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+export default function Notes({ projects, notes, onLoadNotes, onSaveNote, onDeleteNote }) {
+    const [projectId, setProjectId] = useState("");
+    const [form, setForm] = useState({ title: "", content: "" });
+    const [editingId, setEditingId] = useState(null);
+    const [error, setError] = useState("");
 
-  useEffect(() => {
-    let active = true;
+    useEffect(() => { if (projects.length && !projectId) setProjectId(projects[0]._id); }, [projects, projectId]);
+    useEffect(() => { if (projectId) onLoadNotes(projectId); }, [projectId]);
 
-    async function loadProjects() {
-      try {
-        const [projectData, profileData] = await Promise.all([
-          apiRequest("/projects"),
-          apiRequest("/auth/profile"),
-        ]);
-        if (!active) return;
-        const projectList = Array.isArray(projectData.projects)
-          ? projectData.projects
-          : [];
-
-        setProjects(projectList);
-        setCurrentUserId(String(profileData.user?._id || profileData.user?.id || ""));
-        setProjectId((current) =>
-          projectList.some((project) => String(project._id) === current)
-            ? current
-            : String(projectList[0]?._id || "")
-        );
-      } catch (requestError) {
-        if (active) setError(requestError.message || "Unable to load projects.");
-      } finally {
-        if (active) setLoadingProjects(false);
-      }
-    }
-
-    loadProjects();
-    return () => {
-      active = false;
+    const edit = note => { setEditingId(note._id); setForm({ title: note.title, content: note.content }); };
+    const submit = async e => {
+        e.preventDefault(); setError("");
+        try {
+            await onSaveNote(projectId, form, editingId);
+            setForm({ title: "", content: "" }); setEditingId(null);
+    } catch (err) { setError(err.message); }
     };
-  }, []);
 
-  useEffect(() => {
-    if (!projectId) return;
-    let active = true;
-
-    async function loadNotes() {
-      setLoadingNotes(true);
-      setError("");
-
-      try {
-        const data = await apiRequest(`/projects/${projectId}/notes`);
-        if (active) setNotes(Array.isArray(data.notes) ? data.notes : []);
-      } catch (requestError) {
-        if (active) {
-          setNotes([]);
-          setError(requestError.message || "Unable to load notes.");
-        }
-      } finally {
-        if (active) setLoadingNotes(false);
-      }
-    }
-
-    loadNotes();
-    return () => {
-      active = false;
-    };
-  }, [projectId]);
-
-  function resetEditor() {
-    setTitle("");
-    setContent("");
-    setEditingId("");
-    setAiResult(null);
-  }
-
-  function editNote(note) {
-    setTitle(note.title || "");
-    setContent(note.content || "");
-    setEditingId(note._id);
-    setAiResult(null);
-    setError("");
-    setMessage("");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  async function saveNote(event) {
-    event.preventDefault();
-    setError("");
-    setMessage("");
-
-    if (!projectId) {
-      setError("Create or select a project before saving a note.");
-      return;
-    }
-
-    if (!title.trim()) {
-      setError("Enter a title for this note.");
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const request = editingId
-        ? apiRequest(`/notes/${editingId}`, {
-            method: "PUT",
-            body: JSON.stringify({ title: title.trim(), content }),
-          })
-        : apiRequest(`/projects/${projectId}/notes`, {
-            method: "POST",
-            body: JSON.stringify({ title: title.trim(), content }),
-          });
-      const result = await request;
-      setMessage(result.message || "Note saved successfully.");
-      resetEditor();
-      const data = await apiRequest(`/projects/${projectId}/notes`);
-      setNotes(Array.isArray(data.notes) ? data.notes : []);
-    } catch (requestError) {
-      setError(requestError.message || "Unable to save this note.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function deleteNote(noteId) {
-    if (!window.confirm("Delete this note? This cannot be undone.")) return;
-
-    setError("");
-    setMessage("");
-    setBusyNoteId(noteId);
-    try {
-      const result = await apiRequest(`/notes/${noteId}`, { method: "DELETE" });
-      setMessage(result.message || "Note deleted successfully.");
-      setNotes((current) => current.filter((note) => note._id !== noteId));
-      if (editingId === noteId) resetEditor();
-    } catch (requestError) {
-      setError(requestError.message || "Unable to delete this note.");
-    } finally {
-      setBusyNoteId("");
-    }
-  }
-
-  async function requestNoteHelp(note, task) {
-    setError("");
-    setAiResult(null);
-    setBusyNoteId(note._id);
-    try {
-      const data = await apiRequest("/gemini/explain", {
-        method: "POST",
-        body: JSON.stringify({ text: note.content, task }),
-      });
-      setAiResult({
-        noteId: note._id,
-        title: task === "improve" ? "Suggested improvements" : "Note explanation",
-        text: data.explanation,
-      });
-    } catch (requestError) {
-      setError(requestError.message || "Gemini could not process this note.");
-    } finally {
-      setBusyNoteId("");
-    }
-  }
-
-  async function toggleNoteVisibility(note) {
-    setError("");
-    try {
-      const response = await apiRequest(`/notes/${note._id}`, {
-        method: "PUT",
-        body: JSON.stringify({ isPublic: !note.isPublic }),
-      });
-      setNotes((current) =>
-        current.map((item) =>
-          item._id === note._id
-            ? { ...item, isPublic: response.note?.isPublic ?? !note.isPublic }
-            : item
-        )
-      );
-    } catch (requestError) {
-      setError(requestError.message || "Unable to update note visibility.");
-    }
-  }
-
-  const selectedProject = projects.find(
-    (project) => String(project._id) === projectId
-  );
-  const selectedProjectOwnerId = String(
-    selectedProject?.createdBy?._id || selectedProject?.createdBy || ""
-  );
-
-  return (
-    <div className="notes-page">
-      <header className="notes-header">
-        <div>
-          <span className="eyebrow">SHARED KNOWLEDGE</span>
-          <h1>Project Notes</h1>
-          <p>Write and manage Markdown notes for your projects.</p>
-        </div>
-        <span className="notes-count">{notes.length} {notes.length === 1 ? "note" : "notes"}</span>
-      </header>
-
-      {error && <p className="notice notice-error" role="alert">{error}</p>}
-      {message && <p className="notice notice-success" role="status">{message}</p>}
-
-      <div className="note-form-card">
-        <label htmlFor="notes-project">Select Project</label>
-        <select
-          id="notes-project"
-          value={projectId}
-          onChange={(event) => {
-            setProjectId(event.target.value);
-            setNotes([]);
-            resetEditor();
-            setError("");
-            setMessage("");
-          }}
-          disabled={loadingProjects || projects.length === 0}
-        >
-          <option value="">
-            {loadingProjects ? "Loading projects..." : "Choose a project"}
-          </option>
-          {projects.map((project) => (
-            <option key={project._id} value={project._id}>{project.name}</option>
-          ))}
-        </select>
-      </div>
-
-      <section className="note-form-card">
-        <h2><span className="form-heading-icon">▤</span>{editingId ? "Edit note" : "Create a note"}</h2>
-        <form onSubmit={saveNote}>
-          <label htmlFor="note-title">Title</label>
-          <input
-            id="note-title"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            maxLength={160}
-            required
-            disabled={!projectId || saving}
-            placeholder="Note title"
-          />
-
-          <label htmlFor="note-content">Markdown</label>
-          <textarea
-            id="note-content"
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-            rows={12}
-            required
-            disabled={!projectId || saving}
-            placeholder={"Write your note using Markdown syntax...\n\n## Heading\n- List item"}
-          />
-          <button type="submit" disabled={!projectId || saving}>
-            {saving ? "Saving..." : editingId ? "Save Changes" : "Save Note"}
-          </button>
-          {editingId && (
-            <button type="button" onClick={resetEditor}>
-              Cancel Edit
-            </button>
-          )}
-        </form>
-      </section>
-
-      <section className="notes-list-section">
-        <h2>Saved Notes</h2>
-        {!projectId ? (
-          <p>{loadingProjects ? "Loading projects..." : "Create a project to start adding notes."}</p>
-        ) : loadingNotes ? (
-          <p>Loading notes...</p>
-        ) : notes.length === 0 ? (
-          <div className="empty-notes">
-            <h3>No notes yet</h3>
-            <p>Save your first project note using the editor above.</p>
-          </div>
-        ) : (
-          <div className="notes-grid">
-            {notes.map((note) => {
-              const authorId = String(note.createdBy?._id || note.createdBy || "");
-              const canManage = authorId === currentUserId ||
-                selectedProjectOwnerId === currentUserId;
-
-              return (
-                <NoteCard
-                  key={note._id}
-                  note={note}
-                  canManage={canManage}
-                  busy={busyNoteId === note._id}
-                  aiResult={aiResult?.noteId === note._id ? aiResult : null}
-                  onEdit={editNote}
-                  onDelete={deleteNote}
-                  onExplain={requestNoteHelp}
-                  onTogglePublic={toggleNoteVisibility}
-                />
-              );
-            })}
-          </div>
-        )}
-      </section>
-    </div>
-  );
+    return <section>
+        <div className="page-heading"><div><p className="eyebrow">DOCUMENTATION</p><h1>Project notes</h1><p className="muted">Write down ideas, decisions and useful information.</p></div></div>
+        {!projects.length ? <div className="empty-state">Create a project before adding notes.</div> : <>
+            <label className="select-label">Choose project<select value={projectId} onChange={e => setProjectId(e.target.value)}>{projects.map(p => <option value={p._id} key={p._id}>{p.name}</option>)}</select></label>
+            <form className="form-panel" onSubmit={submit}><h2>{editingId ? "Edit note" : "Create note"}</h2>{error && <div className="error-message">{error}</div>}
+                <label>Title<input required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></label>
+                <label>Content<textarea required rows="5" value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} placeholder="Write your project notes..." /></label>
+                <div className="inline-actions"><button className="button button-primary">{editingId ? "Update note" : "Save note"}</button>{editingId && <button type="button" className="button button-light" onClick={() => { setEditingId(null); setForm({ title: "", content: "" }); }}>Cancel</button>}</div>
+            </form>
+            <div className="note-grid">{notes.map(note => <NoteCard key={note._id} note={note} onEdit={edit} onDelete={onDeleteNote} />)}</div>
+        </>}
+    </section>;
 }
-
-export default Notes;
