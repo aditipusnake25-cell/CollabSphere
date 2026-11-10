@@ -1,0 +1,2 @@
+/* PublicProject.css — uses public-page / public-content from App.css. */
+.public-content h1 { color: var(--primary-dark); }

@@ -1,0 +1,24 @@
+/* Login.css — authentication card (reused by Register.css) */
+.auth-page {
+  position: relative; overflow: hidden; min-height: 100vh; display: grid; place-items: center; padding: 25px;
+  background: linear-gradient(-45deg, #1e3a8a, #2563eb, #38bdf8, #1d4ed8); background-size: 300% 300%;
+  animation: gradientShift 14s ease infinite;
+}
+.auth-page::before, .auth-page::after { /* floating blobs */
+  content: ""; position: absolute; border-radius: 50%; background: rgba(255,255,255,.12); animation: floaty 7s ease-in-out infinite;
+}
+.auth-page::before { width: 360px; height: 360px; top: -110px; left: -90px; }
+.auth-page::after { width: 280px; height: 280px; bottom: -90px; right: -60px; animation-delay: 1.5s; }
+.auth-card {
+  position: relative; z-index: 1; width: min(100%, 430px); background: rgba(255,255,255,.97); border: 1px solid rgba(255,255,255,.6);
+  border-radius: var(--radius-xl); padding: 36px; box-shadow: var(--shadow-lg); display: grid; gap: 17px;
+  animation: fadeUp .7s ease both; transition: transform var(--transition), box-shadow var(--transition);
+}
+.auth-card:hover { transform: translateY(-4px); box-shadow: 0 30px 70px rgba(30,58,138,.35); }
+.auth-brand { margin-bottom: 12px; }
+.auth-card h1 { font-size: 27px; margin: 0; color: var(--primary-dark); }
+.auth-card label { gap: 8px; }
+.auth-card input { margin-top: 2px; }
+.auth-switch { text-align: center; font-size: 13px; color: var(--text-muted); margin: 0; }
+.auth-switch a, .auth-switch button { color: var(--primary); font-weight: 700; text-decoration: none; background: none; border: 0; }
+.auth-switch a:hover, .auth-switch button:hover { text-decoration: underline; }

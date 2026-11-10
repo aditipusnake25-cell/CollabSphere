@@ -1,0 +1,26 @@
+/* Sidebar.css — side navigation */
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0; min-height: calc(100vh - var(--topbar-h));
+  background: var(--surface); border-right: 1px solid var(--border); padding: 26px 14px;
+  box-shadow: 4px 0 20px rgba(37,99,235,.05); animation: slideRight .5s ease both;
+}
+.sidebar-label { font-size: 10px; letter-spacing: 1.5px; color: var(--text-faint); font-weight: 700; padding: 0 12px; text-transform: uppercase; }
+.nav-item {
+  position: relative; overflow: hidden; width: 100%; display: flex; align-items: center; gap: 12px; border: 0;
+  background: transparent; text-align: left; padding: 12px 14px; border-radius: var(--radius-sm);
+  color: var(--text-subtle); font-weight: 600; margin: 4px 0;
+  transition: background var(--transition), color var(--transition), transform var(--transition), box-shadow var(--transition);
+}
+.nav-item span { width: 20px; text-align: center; font-size: 18px; transition: transform var(--transition); }
+.nav-item:hover { background: var(--primary-tint); color: var(--primary); transform: translateX(5px); }
+.nav-item:hover span { transform: scale(1.25) rotate(-6deg); }
+.nav-item.active { background: var(--gradient); color: #fff; box-shadow: 0 8px 20px rgba(37,99,235,.35); }
+.nav-item.active:hover { transform: translateX(5px); }
+@media (max-width: 760px) {
+  .app-body { display: block; }
+  .sidebar { width: 100%; min-height: 0; display: flex; overflow-x: auto; padding: 8px; border-right: 0; border-bottom: 1px solid var(--border); }
+  .sidebar-label { display: none; }
+  .nav-item { width: auto; white-space: nowrap; padding: 9px 12px; }
+  .nav-item span { display: none; }
+  .nav-item:hover, .nav-item.active:hover { transform: translateY(-2px); }
+}

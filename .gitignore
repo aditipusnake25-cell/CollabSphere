@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Dependencies
 node_modules/
 
@@ -18,4 +19,14 @@ Backend/uploads/*
 *.log
 
 # System files
+=======
+node_modules/
+.env
+Frontend/.env
+Backend/.env
+Frontend/dist/
+Backend/uploads/*
+!Backend/uploads/.gitkeep
+*.log
+>>>>>>> 2a62d71a166cc55d7fffafbdf8d28332ac3f59b7
 .DS_Store
