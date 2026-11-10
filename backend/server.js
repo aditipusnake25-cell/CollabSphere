@@ -51,7 +51,7 @@ app.get("/", (req, res) => {
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
-app.use("/api/notes", notesRoutes);
+app.use("/api/notes", noteRoutes);
 app.use("/api/files", fileRoutes);
 app.use("/api/gemini", geminiRoutes);
 
