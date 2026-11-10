@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
-import notesRoutes from "./routes/notesRoutes.js";
+import noteRoutes from "./routes/noteRoutes.js";
 import fileRoutes from "./routes/fileRoutes.js";
 import geminiRoutes from "./routes/geminiRoutes.js";
 
