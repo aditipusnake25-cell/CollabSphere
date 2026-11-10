@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+Backend/.env
+Frontend/.env
+
+# Build files
+dist/
+build/
+
+# Uploaded files
+Backend/uploads/*
+!Backend/uploads/.gitkeep
+
+# Logs
+*.log
+
+# System files
+.DS_Store

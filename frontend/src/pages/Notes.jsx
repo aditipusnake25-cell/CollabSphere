@@ -1,224 +1,309 @@
 import { useEffect, useState } from "react";
 import { apiRequest } from "../services/api";
-import "../css/Files.css";
+import NoteCard from "../components/NoteCard";
+import "../css/Notes.css";
 
-function Files() {
-  const [files, setFiles] = useState([]);
+function Notes() {
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [notes, setNotes] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState("");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [editingId, setEditingId] = useState("");
+  const [loadingProjects, setLoadingProjects] = useState(true);
+  const [loadingNotes, setLoadingNotes] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [busyNoteId, setBusyNoteId] = useState("");
+  const [aiResult, setAiResult] = useState(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    let active = true;
+
+    async function loadProjects() {
+      try {
+        const [projectData, profileData] = await Promise.all([
+          apiRequest("/projects"),
+          apiRequest("/auth/profile"),
+        ]);
+        if (!active) return;
+        const projectList = Array.isArray(projectData.projects)
+          ? projectData.projects
+          : [];
+
+        setProjects(projectList);
+        setCurrentUserId(String(profileData.user?._id || profileData.user?.id || ""));
+        setProjectId((current) =>
+          projectList.some((project) => String(project._id) === current)
+            ? current
+            : String(projectList[0]?._id || "")
+        );
+      } catch (requestError) {
+        if (active) setError(requestError.message || "Unable to load projects.");
+      } finally {
+        if (active) setLoadingProjects(false);
+      }
+    }
+
     loadProjects();
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (projectId) {
-      loadFiles(projectId);
-    } else {
-      setFiles([]);
+    if (!projectId) return;
+    let active = true;
+
+    async function loadNotes() {
+      setLoadingNotes(true);
+      setError("");
+
+      try {
+        const data = await apiRequest(`/projects/${projectId}/notes`);
+        if (active) setNotes(Array.isArray(data.notes) ? data.notes : []);
+      } catch (requestError) {
+        if (active) {
+          setNotes([]);
+          setError(requestError.message || "Unable to load notes.");
+        }
+      } finally {
+        if (active) setLoadingNotes(false);
+      }
     }
+
+    loadNotes();
+    return () => {
+      active = false;
+    };
   }, [projectId]);
 
-  async function loadProjects() {
-    try {
-      const data = await apiRequest("/projects");
-      const list = Array.isArray(data) ? data : data.projects || [];
-
-      setProjects(list);
-
-      if (list.length > 0) {
-        setProjectId(list[0]._id || list[0].id);
-      }
-    } catch (err) {
-      setError(err.message || "Unable to load projects.");
-    }
+  function resetEditor() {
+    setTitle("");
+    setContent("");
+    setEditingId("");
+    setAiResult(null);
   }
 
-  async function loadFiles(id) {
-    setLoading(true);
+  function editNote(note) {
+    setTitle(note.title || "");
+    setContent(note.content || "");
+    setEditingId(note._id);
+    setAiResult(null);
     setError("");
-
-    try {
-      const data = await apiRequest(`/files/project/${id}`);
-      setFiles(Array.isArray(data) ? data : data.files || []);
-    } catch (err) {
-      setError(err.message || "Unable to load files.");
-    } finally {
-      setLoading(false);
-    }
+    setMessage("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  async function handleUpload(e) {
-    e.preventDefault();
-
-    if (!projectId || !selectedFile) {
-      setError("Select a project and a file first.");
-      return;
-    }
-
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "application/pdf",
-      "text/plain",
-    ];
-
-    if (!allowedTypes.includes(selectedFile.type)) {
-      setError("Only JPG, PNG, PDF, and TXT files are allowed.");
-      return;
-    }
-
-    if (selectedFile.size > 5 * 1024 * 1024) {
-      setError("File size must be 5 MB or less.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-
-    setUploading(true);
+  async function saveNote(event) {
+    event.preventDefault();
     setError("");
     setMessage("");
 
-    try {
-      // Verify the upload route and field name against fileRoutes.js.
-      await apiRequest(`/files/${projectId}`, {
-        method: "POST",
-        body: formData,
-      });
+    if (!projectId) {
+      setError("Create or select a project before saving a note.");
+      return;
+    }
 
-      setSelectedFile(null);
-      e.target.reset();
-      setMessage("File uploaded successfully.");
-      await loadFiles(projectId);
-    } catch (err) {
-      setError(err.message || "File upload failed.");
+    if (!title.trim()) {
+      setError("Enter a title for this note.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const request = editingId
+        ? apiRequest(`/notes/${editingId}`, {
+            method: "PUT",
+            body: JSON.stringify({ title: title.trim(), content }),
+          })
+        : apiRequest(`/projects/${projectId}/notes`, {
+            method: "POST",
+            body: JSON.stringify({ title: title.trim(), content }),
+          });
+      const result = await request;
+      setMessage(result.message || "Note saved successfully.");
+      resetEditor();
+      const data = await apiRequest(`/projects/${projectId}/notes`);
+      setNotes(Array.isArray(data.notes) ? data.notes : []);
+    } catch (requestError) {
+      setError(requestError.message || "Unable to save this note.");
     } finally {
-      setUploading(false);
+      setSaving(false);
     }
   }
 
-  async function handleDelete(fileId) {
-    if (!window.confirm("Delete this file?")) return;
+  async function deleteNote(noteId) {
+    if (!window.confirm("Delete this note? This cannot be undone.")) return;
 
+    setError("");
+    setMessage("");
+    setBusyNoteId(noteId);
     try {
-      await apiRequest(`/files/${fileId}`, {
-        method: "DELETE",
-      });
-
-      setMessage("File deleted.");
-      await loadFiles(projectId);
-    } catch (err) {
-      setError(err.message || "Unable to delete file.");
+      const result = await apiRequest(`/notes/${noteId}`, { method: "DELETE" });
+      setMessage(result.message || "Note deleted successfully.");
+      setNotes((current) => current.filter((note) => note._id !== noteId));
+      if (editingId === noteId) resetEditor();
+    } catch (requestError) {
+      setError(requestError.message || "Unable to delete this note.");
+    } finally {
+      setBusyNoteId("");
     }
   }
+
+  async function requestNoteHelp(note, task) {
+    setError("");
+    setAiResult(null);
+    setBusyNoteId(note._id);
+    try {
+      const data = await apiRequest("/gemini/explain", {
+        method: "POST",
+        body: JSON.stringify({ text: note.content, task }),
+      });
+      setAiResult({
+        noteId: note._id,
+        title: task === "improve" ? "Suggested improvements" : "Note explanation",
+        text: data.explanation,
+      });
+    } catch (requestError) {
+      setError(requestError.message || "Gemini could not process this note.");
+    } finally {
+      setBusyNoteId("");
+    }
+  }
+
+  async function toggleNoteVisibility(note) {
+    setError("");
+    try {
+      const response = await apiRequest(`/notes/${note._id}`, {
+        method: "PUT",
+        body: JSON.stringify({ isPublic: !note.isPublic }),
+      });
+      setNotes((current) =>
+        current.map((item) =>
+          item._id === note._id
+            ? { ...item, isPublic: response.note?.isPublic ?? !note.isPublic }
+            : item
+        )
+      );
+    } catch (requestError) {
+      setError(requestError.message || "Unable to update note visibility.");
+    }
+  }
+
+  const selectedProject = projects.find(
+    (project) => String(project._id) === projectId
+  );
+  const selectedProjectOwnerId = String(
+    selectedProject?.createdBy?._id || selectedProject?.createdBy || ""
+  );
 
   return (
-    <div className="files-page">
-      <header className="files-header">
+    <div className="notes-page">
+      <header className="notes-header">
         <div>
-          <h1>Project Files</h1>
-          <p>Upload and manage your project resources.</p>
+          <span className="eyebrow">SHARED KNOWLEDGE</span>
+          <h1>Project Notes</h1>
+          <p>Write and manage Markdown notes for your projects.</p>
         </div>
+        <span className="notes-count">{notes.length} {notes.length === 1 ? "note" : "notes"}</span>
       </header>
 
-      {error && <p className="files-error">{error}</p>}
-      {message && <p className="files-success">{message}</p>}
+      {error && <p className="notice notice-error" role="alert">{error}</p>}
+      {message && <p className="notice notice-success" role="status">{message}</p>}
 
-      {projects.length > 0 && (
-        <div className="files-project-select">
-          <label htmlFor="files-project">Select Project</label>
-          <select
-            id="files-project"
-            value={projectId}
-            onChange={(e) => setProjectId(e.target.value)}
-          >
-            {projects.map((project) => (
-              <option
-                key={project._id || project.id}
-                value={project._id || project.id}
-              >
-                {project.name || project.title || "Untitled Project"}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
+      <div className="note-form-card">
+        <label htmlFor="notes-project">Select Project</label>
+        <select
+          id="notes-project"
+          value={projectId}
+          onChange={(event) => {
+            setProjectId(event.target.value);
+            setNotes([]);
+            resetEditor();
+            setError("");
+            setMessage("");
+          }}
+          disabled={loadingProjects || projects.length === 0}
+        >
+          <option value="">
+            {loadingProjects ? "Loading projects..." : "Choose a project"}
+          </option>
+          {projects.map((project) => (
+            <option key={project._id} value={project._id}>{project.name}</option>
+          ))}
+        </select>
+      </div>
 
-      <section className="file-upload-card">
-        <h2>Upload a File</h2>
-        <p>JPG, PNG, PDF, or TXT · Maximum 5 MB</p>
-
-        <form onSubmit={handleUpload}>
+      <section className="note-form-card">
+        <h2><span className="form-heading-icon">▤</span>{editingId ? "Edit note" : "Create a note"}</h2>
+        <form onSubmit={saveNote}>
+          <label htmlFor="note-title">Title</label>
           <input
-            type="file"
-            accept=".jpg,.jpeg,.png,.pdf,.txt"
-            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+            id="note-title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            maxLength={160}
+            required
+            disabled={!projectId || saving}
+            placeholder="Note title"
           />
 
-          {selectedFile && (
-            <p>
-              {selectedFile.name} ·{" "}
-              {(selectedFile.size / 1024).toFixed(1)} KB
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={uploading || !projectId || !selectedFile}
-          >
-            {uploading ? "Uploading..." : "Upload File"}
+          <label htmlFor="note-content">Markdown</label>
+          <textarea
+            id="note-content"
+            value={content}
+            onChange={(event) => setContent(event.target.value)}
+            rows={12}
+            required
+            disabled={!projectId || saving}
+            placeholder={"Write your note using Markdown syntax...\n\n## Heading\n- List item"}
+          />
+          <button type="submit" disabled={!projectId || saving}>
+            {saving ? "Saving..." : editingId ? "Save Changes" : "Save Note"}
           </button>
+          {editingId && (
+            <button type="button" onClick={resetEditor}>
+              Cancel Edit
+            </button>
+          )}
         </form>
       </section>
 
-      <section className="files-list-section">
-        <h2>Uploaded Files</h2>
-
-        {projects.length === 0 ? (
-          <p>Create a project before uploading files.</p>
-        ) : loading ? (
-          <p>Loading files...</p>
-        ) : files.length === 0 ? (
-          <p>No files uploaded for this project yet.</p>
+      <section className="notes-list-section">
+        <h2>Saved Notes</h2>
+        {!projectId ? (
+          <p>{loadingProjects ? "Loading projects..." : "Create a project to start adding notes."}</p>
+        ) : loadingNotes ? (
+          <p>Loading notes...</p>
+        ) : notes.length === 0 ? (
+          <div className="empty-notes">
+            <h3>No notes yet</h3>
+            <p>Save your first project note using the editor above.</p>
+          </div>
         ) : (
-          <div className="files-grid">
-            {files.map((file) => (
-              <article
-                className="file-card"
-                key={file._id || file.id}
-              >
-                <div className="file-icon">📄</div>
-                <h3>{file.originalName || file.filename || "File"}</h3>
-                <p>
-                  {file.size
-                    ? `${(file.size / 1024).toFixed(1)} KB`
-                    : "Size unavailable"}
-                </p>
+          <div className="notes-grid">
+            {notes.map((note) => {
+              const authorId = String(note.createdBy?._id || note.createdBy || "");
+              const canManage = authorId === currentUserId ||
+                selectedProjectOwnerId === currentUserId;
 
-                {file.fileUrl && (
-                  <a
-                    href={file.fileUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    View File
-                  </a>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => handleDelete(file._id || file.id)}
-                >
-                  Delete
-                </button>
-              </article>
-            ))}
+              return (
+                <NoteCard
+                  key={note._id}
+                  note={note}
+                  canManage={canManage}
+                  busy={busyNoteId === note._id}
+                  aiResult={aiResult?.noteId === note._id ? aiResult : null}
+                  onEdit={editNote}
+                  onDelete={deleteNote}
+                  onExplain={requestNoteHelp}
+                  onTogglePublic={toggleNoteVisibility}
+                />
+              );
+            })}
           </div>
         )}
       </section>
@@ -226,4 +311,4 @@ function Files() {
   );
 }
 
-export default Files;
+export default Notes;

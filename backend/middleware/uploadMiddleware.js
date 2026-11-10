@@ -1,8 +1,11 @@
 import multer from "multer"
+import { randomUUID } from "node:crypto"
 import path from 'path'
 import fs from 'fs'
+import { fileURLToPath } from 'url'
 
-const uploadDir = path.resolve('uploads')
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const uploadDir = path.resolve(__dirname, '../uploads')
 fs.mkdirSync(uploadDir , {recursive:true})
 
 const storage = multer.diskStorage({
@@ -10,7 +13,8 @@ const storage = multer.diskStorage({
         cb(null,uploadDir)
     },
   filename: (req, file, cb) => {
-  cb(null, Date.now() + "-" + file.originalname);
+  const safeName = path.basename(file.originalname).replace(/[^a-zA-Z0-9._-]/g, "_")
+  cb(null, `${randomUUID()}-${safeName}`);
 }
 })
 
@@ -24,7 +28,9 @@ const upload = multer({
         if(allowedExtensions.includes(ext)){
             return cb(null,true)
         }
-        cb(new Error("This file type is not supported!"))
+        const error = new Error("This file type is not supported!")
+        error.status = 400
+        cb(error)
     }
 })
 export default upload

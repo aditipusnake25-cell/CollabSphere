@@ -1,46 +1,67 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiRequest } from "../services/api";
 import "../css/AIAssistant.css";
 
 const aiActions = [
   {
-    id: "explain-code",
+    id: "explain",
     title: "Explain Code",
     description: "Understand complex code step by step.",
     placeholder: "Paste the code you want explained...",
     button: "Explain Code",
-    field: "code",
   },
   {
-    id: "generate-readme",
+    id: "readme",
     title: "Generate README",
     description: "Create a README for your project.",
-    placeholder: "Describe your project, its features and tech stack...",
+    placeholder: "Describe the project, its features and tech stack...",
     button: "Generate README",
-    field: "projectDescription",
   },
   {
-    id: "generate-documentation",
+    id: "docs",
     title: "Generate Documentation",
     description: "Generate technical documentation.",
     placeholder: "Paste your code or describe the feature to document...",
     button: "Generate Documentation",
-    field: "code",
   },
 ];
 
 function AIAssistant() {
+  const [projects, setProjects] = useState([]);
+  const [projectId, setProjectId] = useState("");
   const [activeAction, setActiveAction] = useState(aiActions[0]);
   const [input, setInput] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    let active = true;
+    apiRequest("/projects")
+      .then((data) => {
+        if (active) {
+          setProjects(Array.isArray(data.projects) ? data.projects : []);
+        }
+      })
+      .catch((requestError) => {
+        if (active) setError(requestError.message || "Unable to load projects.");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (!input.trim()) {
+    if (activeAction.id === "explain" && !input.trim()) {
       setError("Please enter some code or project details.");
+      return;
+    }
+
+    if (activeAction.id !== "explain" && !projectId) {
+      setError("Select a project to generate its documentation.");
       return;
     }
 
@@ -49,11 +70,12 @@ function AIAssistant() {
     setResult("");
 
     try {
-      const data = await apiRequest(`/ai/${activeAction.id}`, {
+      const requestBody = activeAction.id === "explain"
+        ? { code: input.trim() }
+        : { projectId };
+      const data = await apiRequest(`/gemini/${activeAction.id}`, {
         method: "POST",
-        body: JSON.stringify({
-          [activeAction.field]: input.trim(),
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const output =
@@ -88,6 +110,7 @@ function AIAssistant() {
   return (
     <div className="ai-page">
       <header className="ai-header">
+        <span className="eyebrow">YOUR CREATIVE COPILOT</span>
         <h1>AI Assistant</h1>
         <p>
           Use Gemini AI to explain code and generate project documentation.
@@ -114,17 +137,38 @@ function AIAssistant() {
         <h2>{activeAction.title}</h2>
 
         <form onSubmit={handleSubmit}>
-          <label htmlFor="ai-input">
-            Code or project details
-          </label>
-
-          <textarea
-            id="ai-input"
-            rows={10}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={activeAction.placeholder}
-          />
+          {activeAction.id === "explain" ? (
+            <>
+              <label htmlFor="ai-input">Code to explain</label>
+              <textarea
+                id="ai-input"
+                rows={10}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={activeAction.placeholder}
+              />
+            </>
+          ) : (
+            <>
+              <label htmlFor="ai-project">Select project</label>
+              <select
+                id="ai-project"
+                value={projectId}
+                onChange={(event) => setProjectId(event.target.value)}
+                disabled={loading || projects.length === 0}
+              >
+                <option value="">
+                  {projects.length ? "Choose a project" : "No projects available"}
+                </option>
+                {projects.map((project) => (
+                  <option key={project._id} value={project._id}>{project.name}</option>
+                ))}
+              </select>
+              {activeAction.id === "readme" && (
+                <p>The generated README is saved to the selected project.</p>
+              )}
+            </>
+          )}
 
           {error && <p className="ai-error">{error}</p>}
 

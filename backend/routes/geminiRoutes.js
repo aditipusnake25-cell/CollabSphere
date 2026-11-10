@@ -4,6 +4,10 @@ import { explainCode , generateReadme,generateDocumentation } from "../controlle
 
 const router = express.Router()
 
+router.post("/explain", authMiddleware, explainCode)
+router.post("/docs", authMiddleware, generateDocumentation)
+router.post("/readme", authMiddleware, generateReadme)
+
 router.post("/explain-code", authMiddleware, explainCode)
 
 router.post("/generate-readme",authMiddleware,generateReadme)

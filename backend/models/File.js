@@ -17,13 +17,7 @@ const fileSchema = new mongoose.Schema({
     },
     mimeType: {
         type: String,
-        required: true,
-        enum: [
-            "image/jpeg",
-            "image/png",
-            "application/pdf",
-            "text/plain"
-        ]
+        required: true
     },
     size: {
         type: Number,

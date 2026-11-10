@@ -1,45 +1,63 @@
-    import mongoose from "mongoose";
+import mongoose from "mongoose";
 
-    const projectSchema = mongoose.Schema({
-        title: {
+const projectSchema = new mongoose.Schema(
+    {
+        name: {
             type: String,
-            trim: true,
-            required: true
+            required: true,
+            trim: true
         },
+
         description: {
             type: String,
             required: true,
-            trim: true,
-            minlength: 10
+            trim: true
         },
-        owner: {
+
+        technology: {
+            type: [String],
+            default: []
+        },
+
+        status: {
+            type: String,
+            enum: ["Planning", "In Progress", "Completed"],
+            default: "Planning"
+        },
+
+        createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true
         },
-        members: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        }],
-        technologies: {
-            type: [String],
-            default: []
-        },
-        repositoryUrl: {
-            type: String,
-            validate: {
-                validator: function (value) {
-                    return !value || /^https?:\/\/.+/.test(value);
-                },
-                message: "Please enter a valid URL"
+
+        members: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User"
             }
-        },
+        ],
+
         isPublic: {
             type: Boolean,
             default: false
+        },
+
+        readme: {
+            type: String,
+            default: ""
+        },
+
+        readmeIsPublic: {
+            type: Boolean,
+            default: false
         }
-    }, { timestamps: true })
+    },
+    {
+        timestamps: true
+    }
+);
 
-    const Project = mongoose.model("Project", projectSchema)
+const Project = mongoose.model("Project", projectSchema);
 
-    export default Project;
+export default Project;

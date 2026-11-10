@@ -36,51 +36,106 @@
 
 import "dotenv/config";
 import { GoogleGenAI } from "@google/genai";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import mongoose from "mongoose";
+import File from "../models/File.js";
+import Note from "../models/Note.js";
+import Project from "../models/Project.js";
 
 const apiKey = process.env.GEMINI_API_KEY;
+const uploadsDirectory = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../uploads"
+);
+const codeExtensions = new Set([".js", ".jsx", ".py", ".java", ".html", ".css", ".json"]);
 
-console.log("Gemini API key loaded:", Boolean(apiKey));
-
-const ai = new GoogleGenAI({
+const ai = apiKey ? new GoogleGenAI({
     apiKey: apiKey,
     vertexai: false
-});
+}) : null;
+
+const getProjectContext = async (projectId, userId) => {
+    if (!projectId || !mongoose.isValidObjectId(projectId)) {
+        return { status: 400, message: "A valid projectId is required." };
+    }
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+        return { status: 404, message: "Project not found." };
+    }
+
+    const isMember = project.createdBy.toString() === userId.toString() ||
+        project.members.some((memberId) => memberId.toString() === userId.toString());
+    if (!isMember) {
+        return { status: 403, message: "You are not a member of this project." };
+    }
+
+    const [notes, files] = await Promise.all([
+        Note.find({ project: projectId }).sort({ createdAt: -1 }).limit(30),
+        File.find({ project: projectId }).sort({ createdAt: -1 }).limit(30)
+    ]);
+
+    const codeFiles = files.filter((file) =>
+        codeExtensions.has(path.extname(file.originalName).toLowerCase())
+    ).slice(0, 5);
+    let remainingCodeCharacters = 30000;
+    const fileContents = [];
+    for (const file of codeFiles) {
+        if (remainingCodeCharacters <= 0) break;
+        const content = await readFile(
+            path.join(uploadsDirectory, path.basename(file.storedName)),
+            "utf8"
+        );
+        const excerpt = content.slice(0, remainingCodeCharacters);
+        remainingCodeCharacters -= excerpt.length;
+        fileContents.push(`File: ${file.originalName}\n${excerpt}`);
+    }
+
+    return {
+        project,
+        notes: notes.map(({ title, content }) => ({ title, content: content.slice(0, 2000) })),
+        files,
+        code: fileContents.join("\n\n")
+    };
+};
 
 const explainCode = async (req, res) => {
     try {
-        const { code } = req.body;
+        if (!ai) {
+            return res.status(503).json({ message: "Gemini API is not configured." });
+        }
 
-        if (!code || typeof code !== "string" || !code.trim()) {
-            return res.status(400).json({
-                message: "Please provide code to explain."
-            });
+        const { code, text, task, fileName } = req.body;
+        const source = typeof code === "string" ? code : text;
+
+        if (typeof source !== "string" || !source.trim()) {
+            return res.status(400).json({ message: "Please provide content to explain." });
         }
 
         const response = await ai.models.generateContent({
-            model: "gemini-3.8-flash",
-            contents: `Explain the following code in simple English.
+            model: "gemini-2.5-flash",
+            contents: task === "improve"
+                ? `Suggest clear, actionable improvements to the following note. Preserve its meaning, point out missing details, and provide an improved version. Do not invent project facts.
 
-Explain:
-1. What the code does.
-2. How it works, step by step.
-3. The purpose of important functions and variables.
-4. The input parameters and return values.
-5. A simple example of the output.
+Note:
+${source}`
+                : `Explain the following ${typeof code === "string" ? "code" : "note"} in simple English.
 
 FORMATTING RULES:
 - Return plain text only.
 - Do not use Markdown.
-- Do not use # headings, **bold**, bullet symbols, backticks, or Markdown code blocks.
 - Use simple section titles on separate lines.
-- Use numbered paragraphs where needed.
 - Do not invent details.
 
-Code:
-${code}`
+${fileName ? `File name: ${fileName}\n` : ""}
+Content:
+${source}`
         });
 
         return res.status(200).json({
-            message: "Code explained successfully!",
+            message: "Content processed successfully.",
             explanation: response.text
         });
 
@@ -97,50 +152,42 @@ ${code}`
 
 const generateReadme = async (req, res) => {
     try {
-        const { projectName, description, code, technologies } = req.body;
+        if (!ai) {
+            return res.status(503).json({ message: "Gemini API is not configured." });
+        }
 
-        if (!projectName || !projectName.trim()) {
-            return res.status(400).json({
-                message: "Project name is required."
+        const context = await getProjectContext(req.body.projectId, req.user.id);
+        if (context.status) {
+            return res.status(context.status).json({ message: context.message });
+        }
+
+        if (context.project.createdBy.toString() !== req.user.id.toString()) {
+            return res.status(403).json({
+                message: "Only the project owner can generate and save its README."
             });
         }
 
         const response = await ai.models.generateContent({
-            model: "gemini-3.8-flash",
-            contents: `Generate a clear project README for the following project.
+            model: "gemini-2.5-flash",
+            contents: `Generate a useful README in Markdown using only the supplied project data. Do not invent commands, endpoints, dependencies, environment variables, or features. If information is unavailable, state that it was not provided.
 
-Project Name: ${projectName}
-Description: ${description || "Not provided"}
-Technologies: ${technologies || "Not provided"}
-Code:
-${code || "No code provided"}
+Project: ${context.project.name}
+Description: ${context.project.description}
+Technologies: ${context.project.technology.join(", ") || "Not provided"}
+Notes:
+${context.notes.map((note) => `${note.title}\n${note.content}`).join("\n\n") || "No notes"}
+Project code files:
+${context.code || "No supported code files were uploaded"}
+Other project files: ${context.files.map((file) => file.originalName).join(", ") || "None"}`
+        });
 
-Include:
-1. Project overview
-2. Main features
-3. Technologies used
-4. Installation instructions
-5. Environment variables, if applicable
-6. How to run the project
-7. API endpoints, if identifiable
-8. Future improvements
-
-FORMATTING RULES:
-- Return plain text only.
-- Do not use Markdown headings, bold text, bullet symbols, backticks, or code blocks.
-- Use simple section titles on separate lines.
-- Use numbered paragraphs where needed.
-- Do not invent commands, API endpoints, or configuration details.
-- Mark unknown information as "Not provided".
-- Do not include actual secret keys.
-
-Project details:
-${description || "No additional details provided."}`
-        })
+        context.project.readme = response.text || "";
+        await context.project.save();
 
         return res.status(200).json({
             message: "README generated successfully!",
-            readme: response.text
+            readme: context.project.readme,
+            projectId: context.project.id
         });
 
     } catch (error) {
@@ -155,43 +202,33 @@ ${description || "No additional details provided."}`
 
 const generateDocumentation = async (req, res) => {
     try {
-        const { code, language, fileName } = req.body;
+        if (!ai) {
+            return res.status(503).json({ message: "Gemini API is not configured." });
+        }
 
-        if (!code || typeof code !== "string" || !code.trim()) {
-            return res.status(400).json({
-                message: "Please provide code to document."
-            });
+        const context = await getProjectContext(req.body.projectId, req.user.id);
+        if (context.status) {
+            return res.status(context.status).json({ message: context.message });
         }
 
         const response = await ai.models.generateContent({
-            model: "gemini-3.8-flash",
-            contents: `Generate technical documentation for the following code in plain text.
+            model: "gemini-2.5-flash",
+            contents: `Generate technical documentation in Markdown using only the supplied project data. Explain the project purpose, technologies, available notes, code files and key behavior. Do not invent functions, commands, endpoints, or details. Mark unavailable information as not provided.
 
-File name: ${fileName || "Not provided"}
-Programming language: ${language || "Detect from the code"}
-
-Explain:
-1. The purpose of the code.
-2. Each important function or class.
-3. Parameters and return values.
-4. How the code works.
-5. Example usage.
-6. Important errors or edge cases.
-
-FORMATTING RULES:
-- Return plain text only.
-- Do not use Markdown headings, bold text, bullet symbols, backticks, or code blocks.
-- Use simple section titles on separate lines.
-- Use simple English.
-- Do not invent details.
-
-Code:
-${code}`
+Project: ${context.project.name}
+Description: ${context.project.description}
+Technologies: ${context.project.technology.join(", ") || "Not provided"}
+Notes:
+${context.notes.map((note) => `${note.title}\n${note.content}`).join("\n\n") || "No notes"}
+Code files:
+${context.code || "No supported code files were uploaded"}
+Other files: ${context.files.map((file) => file.originalName).join(", ") || "None"}`
         });
 
         return res.status(200).json({
             message: "Documentation generated successfully!",
-            documentation: response.text
+            documentation: response.text,
+            projectId: context.project.id
         });
 
     } catch (error) {

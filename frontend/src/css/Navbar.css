@@ -1,68 +1,106 @@
 .top-navbar {
-  min-height: 82px;
+  position: sticky;
+  z-index: 20;
+  top: 0;
   display: flex;
+  min-height: 82px;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 16px 28px;
-  background: #ffffff;
-  border-bottom: 1px solid #e4e4e7;
+  gap: 18px;
+  padding: 14px clamp(20px, 3.2vw, 52px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
 }
 
 .navbar-title h2 {
   margin: 0;
-  font-size: 21px;
-  color: #18181b;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
 }
 
 .navbar-title p {
   margin: 5px 0 0;
-  font-size: 13px;
-  color: #71717a;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 19px;
+}
+
+.navbar-greeting {
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 600;
 }
 
 .navbar-user {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: #27272a;
-  font-size: 14px;
+  gap: 9px;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .navbar-avatar {
   display: grid;
+  width: 36px;
+  height: 36px;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: #d1fae5;
-  color: #047857;
-  font-weight: 700;
+  border: 2px solid white;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #bae6fd, #dcfce7);
+  box-shadow: 0 0 0 1px #e2e8f0;
+  color: #0369a1;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.navbar-chevron {
+  margin-left: -4px;
+  color: #94a3b8;
+  font-size: 18px;
+  font-weight: 400;
 }
 
 .mobile-menu-button {
   display: none;
-  border: 0;
-  background: transparent;
-  font-size: 24px;
-  cursor: pointer;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: white;
 }
 
-@media (max-width: 700px) {
-  .top-navbar {
-    padding: 14px;
-  }
+.mobile-menu-button span {
+  width: 15px;
+  height: 2px;
+  border-radius: 2px;
+  background: #334155;
+}
 
-  .mobile-menu-button {
-    display: block;
-  }
+@media (max-width: 760px) {
+  .top-navbar { min-height: 70px; padding: 11px 17px; }
+  .mobile-menu-button { display: flex; }
+  .navbar-title { margin-right: auto; }
+  .navbar-greeting,
+  .navbar-user > span,
+  .navbar-chevron { display: none; }
+  .navbar-right { gap: 0; }
+}
 
-  .navbar-title h2 {
-    font-size: 17px;
-  }
-
-  .navbar-title p,
-  .navbar-user > span {
-    display: none;
-  }
+@media (max-width: 420px) {
+  .navbar-title p { display: none; }
+  .navbar-title h2 { font-size: 14px; }
 }

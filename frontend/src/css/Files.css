@@ -1,133 +1,129 @@
-.files-page {
-  width: 100%;
-}
-
-.files-header {
-  margin-bottom: 24px;
-}
-
-.files-header h1 {
-  margin-bottom: 8px;
-}
-
-.files-header p,
-.file-upload-card > p,
-.file-card p {
-  color: #71717a;
-}
-
-.files-project-select {
-  margin-bottom: 20px;
-}
-
-.files-project-select label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-}
-
-.files-project-select select {
-  width: 100%;
-  max-width: 450px;
-  padding: 12px;
-  border: 1px solid #d4d4d8;
-  border-radius: 8px;
-  background: white;
-}
+.files-header { margin-bottom: 22px; }
+.files-header h1 { margin-bottom: 7px; }
 
 .file-upload-card {
-  padding: 24px;
-  border: 1px solid #e4e4e7;
-  border-radius: 12px;
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
   background: white;
+  box-shadow: var(--shadow-card);
 }
 
-.file-upload-card h2 {
-  margin-top: 0;
-}
+.file-upload-card h2 { margin: 0 0 6px; font-size: 15px; font-weight: 740; letter-spacing: -0.02em; }
+.file-upload-card > p { margin: 0 0 19px; color: var(--muted); font-size: 11px; }
+
+.files-project-select { margin-bottom: 17px; }
+.files-project-select label { display: block; margin-bottom: 8px; color: #334155; font-size: 11px; font-weight: 720; }
+.files-project-select select { max-width: 470px; }
 
 .file-upload-card form {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
 }
 
-.file-upload-card input {
-  max-width: 100%;
+.file-upload-card input[type="file"] {
+  width: min(100%, 410px);
+  min-height: 43px;
+  padding: 7px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #fbfdff;
+  color: #64748b;
+  font-size: 10px;
 }
 
-.file-upload-card button,
-.file-card button {
-  padding: 11px 16px;
-  border: none;
-  border-radius: 8px;
-  background: #047857;
-  color: white;
+.file-upload-card input[type="file"]::file-selector-button {
+  min-height: 27px;
+  margin-right: 10px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 10px;
+  font-weight: 700;
   cursor: pointer;
 }
 
-.file-upload-card button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.file-upload-card form > p { width: 100%; margin: -4px 0 0; color: var(--muted); font-size: 10px; }
+.file-upload-card button[type="submit"] { background: linear-gradient(110deg, var(--sky-deep), #0ea5e9 62%, var(--green-deep)); }
 
-.files-list-section {
-  margin-top: 30px;
-}
+.files-list-section { margin-top: 31px; }
+.files-list-section > h2 { margin: 0 0 15px; font-size: 16px; font-weight: 740; letter-spacing: -0.025em; }
 
 .files-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  align-items: start;
+  gap: 14px;
 }
 
 .file-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 20px;
-  border: 1px solid #e4e4e7;
-  border-radius: 12px;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
   background: white;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.025);
   overflow-wrap: anywhere;
+  transition: transform 170ms ease, border-color 170ms ease, box-shadow 170ms ease;
 }
 
-.file-card h3 {
-  margin: 0;
+.file-card:hover { transform: translateY(-2px); border-color: #b6e7fb; box-shadow: var(--shadow-card); }
+.file-icon { display: grid; width: 39px; height: 39px; place-items: center; border-radius: 12px; background: #eff9ff; color: #0284c7; font-size: 9px; font-weight: 800; }
+.file-details { min-width: 0; }
+.file-details h3 { margin: 0 0 4px; overflow: hidden; color: var(--ink); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.file-details p { margin: 0; color: #94a3b8; font-size: 9px; line-height: 1.5; }
+
+.file-card > button {
+  min-height: 31px;
+  padding: 0 9px;
+  border: 1px solid #cdeeff;
+  border-radius: 8px;
+  background: #f0f9ff;
+  color: #0369a1;
+  font-size: 9px;
+  font-weight: 720;
+  transition: background 150ms ease, transform 150ms ease;
 }
 
-.file-icon {
-  font-size: 30px;
+.file-card > button:hover { transform: translateY(-1px); background: #e0f2fe; }
+.file-card > button.remove-file-button { border-color: #fecaca; background: white; color: #dc2626; }
+.file-card > button.remove-file-button:hover { background: #fff1f2; }
+
+.file-preview,
+.file-explanation {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  margin-top: 5px;
+  padding-top: 13px;
+  border-top: 1px solid #edf2f7;
 }
 
-.file-card a {
-  color: #047857;
-}
-
-.file-card button {
-  background: #dc2626;
-}
+.file-preview-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #334155; font-size: 10px; }
+.file-preview-heading button { padding: 5px 8px; border: 1px solid var(--line); border-radius: 7px; background: white; color: #475569; font-size: 9px; }
+.file-preview img { display: block; max-width: 100%; max-height: 310px; margin: 12px auto 0; border-radius: 9px; object-fit: contain; }
+.file-preview iframe { width: 100%; height: 330px; margin-top: 11px; border: 1px solid var(--line); border-radius: 9px; background: white; }
+.file-text-preview,
+.file-explanation pre { max-height: 320px; overflow: auto; margin: 10px 0 0; padding: 12px; border-radius: 9px; background: #f8fafc; color: #475569; font: 10px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+.file-explanation h4 { margin: 0; color: #0369a1; font-size: 11px; }
 
 .files-error,
-.files-success {
-  padding: 12px;
-  border-radius: 8px;
-}
-
-.files-error {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-.files-success {
-  background: #dcfce7;
-  color: #166534;
-}
+.files-success { padding: 12px 14px; margin: 0 0 17px; border: 1px solid; border-radius: 10px; font-size: 11px; }
+.files-error { border-color: #fecaca; background: #fff1f2; color: #b91c1c; }
+.files-success { border-color: #bbf7d0; background: #f0fdf4; color: #15803d; }
 
 @media (max-width: 600px) {
-  .file-upload-card {
-    padding: 16px;
-  }
+  .file-upload-card { padding: 17px; }
+  .file-upload-card form { align-items: stretch; flex-direction: column; }
+  .file-upload-card input[type="file"] { width: 100%; }
+  .file-upload-card button[type="submit"] { width: 100%; }
+  .files-grid { grid-template-columns: 1fr; }
 }

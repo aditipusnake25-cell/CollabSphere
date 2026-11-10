@@ -1,0 +1,15 @@
+.recent-project-grid .project-card {
+  min-height: 180px;
+  padding: 15px;
+  border-radius: 13px;
+}
+
+.recent-project-grid .project-card:hover { transform: translateY(-2px); }
+.recent-project-grid .project-card-icon { width: 34px; height: 34px; margin-bottom: 0; border-radius: 10px; font-size: 10px; }
+.recent-project-grid .project-card-status { font-size: 8px; }
+.recent-project-grid .project-card h3 { margin-top: 12px; font-size: 12px; }
+.recent-project-grid .project-card > p { min-height: 34px; font-size: 10px; }
+.recent-project-grid .project-card-footer { padding-top: 10px; }
+.recent-project-grid .project-card-footer span { font-size: 8px; }
+.recent-project-grid .project-card-footer button { display: inline-flex; align-items: center; gap: 5px; padding: 0; font-size: 9px; }
+.recent-project-grid .project-card-footer button:hover { color: #0369a1; }

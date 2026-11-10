@@ -7,7 +7,7 @@ function ProjectCard({ project, onClick }) {
   return (
     <article className="project-card">
       <div className="project-card-top">
-        <span className="project-card-icon">▣</span>
+        <span className="project-card-icon">{"</>"}</span>
         <span className="project-card-status">
           {project.status || "Active"}
         </span>
@@ -18,14 +18,12 @@ function ProjectCard({ project, onClick }) {
 
       <div className="project-card-footer">
         <span>
-          {project.createdAt
-            ? new Date(project.createdAt).toLocaleDateString()
-            : "Recently created"}
+          {project.members?.length || 0} collaborators
         </span>
 
         {onClick && (
-          <button onClick={() => onClick(project)}>
-            View project →
+          <button type="button" onClick={() => onClick(project)}>
+            View project <span aria-hidden="true">→</span>
           </button>
         )}
       </div>

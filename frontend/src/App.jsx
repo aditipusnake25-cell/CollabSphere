@@ -1,24 +1,13 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Dashboard from "./pages/Dashboard";
-import Projects from "./pages/Projects";
-import Notes from "./pages/Notes";
-import Files from "./pages/Files";
-import Team from "./pages/Team";
-import AIAssistant from "./pages/AIAssistant";
-import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import PublicProject from "./pages/PublicProject";
+import ProjectDetails from "./pages/ProjectDetails";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import "./App.css";
-
-function ProtectedRoute({ children }) {
-  const token =
-    localStorage.getItem("token") ||
-    localStorage.getItem("authToken");
-
-  return token ? children : <Navigate to="/login" replace />;
-}
 
 function App() {
   return (
@@ -26,6 +15,15 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/public/projects/:id" element={<PublicProject />} />
+        <Route
+          path="/projects/:id"
+          element={
+            <ProtectedRoute>
+              <ProjectDetails />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/*"

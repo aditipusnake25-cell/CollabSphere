@@ -1,16 +1,31 @@
-import express from 'express'
-import authMiddleware from '../middleware/authMiddleware.js'
-import { createProject, getProject, updateProject, deleteProject , addCollaborator } from '../controllers/projectController.js'
-const router = express.Router()
+import express from "express";
 
-router.post("/", authMiddleware, createProject)
+import {
+    createProject,
+    getProjects,
+    getProjectById,
+    updateProject,
+    deleteProject,
+    addProjectMember,
+    removeProjectMember,
+    getPublicProject
+} from "../controllers/projectController.js";
 
-router.get("/", authMiddleware, getProject)
+import authMiddleware from "../middleware/authMiddleware.js";
 
-router.put("/:id", authMiddleware, updateProject)
+const router = express.Router();
 
-router.delete("/:id", authMiddleware, deleteProject)
+router.get("/public/:id", getPublicProject);
+router.use(authMiddleware);
 
-router.post("/:id/members", authMiddleware, addCollaborator);
+router.post("/", createProject);
+router.get("/", getProjects);
+router.get("/:id", getProjectById);
+router.put("/:id", updateProject);
+router.delete("/:id", deleteProject);
 
-export default router 
+// Team members
+router.post("/:id/members", addProjectMember);
+router.delete("/:id/members/:memberId", removeProjectMember);
+
+export default router;

@@ -1,4 +1,5 @@
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 const authMiddleware = async (req, res, next) => {
     try {
@@ -6,27 +7,41 @@ const authMiddleware = async (req, res, next) => {
 
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return res.status(401).json({
-                message: "Access denied. Please login first."
-            })
+                success: false,
+                message: "Please login first"
+            });
         }
 
-        const token = authHeader.split(" ")[1]
+        const token = authHeader.split(" ")[1];
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        const decoded = jwt.verify(
+            token,
+            process.env.JWT_SECRET
+        );
 
-        req.user = decoded;
+        const user = await User.findById(decoded.id).select("-password");
 
-        next()
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        req.user = {
+            id: user._id,
+            name: user.name,
+            email: user.email
+        };
+
+        next();
 
     } catch (error) {
-        console.error("JWT verification error:", error.name, error.message);
-
         return res.status(401).json({
-            message: "Token verification failed",
-            error: error.name,
-            details: error.message
+            success: false,
+            message: "Invalid or expired token"
         });
     }
-}
+};
 
-export default authMiddleware
+export default authMiddleware;

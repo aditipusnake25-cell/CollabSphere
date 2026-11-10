@@ -27,6 +27,10 @@ const noteSchema = new mongoose.Schema({
     isPinned: {
         type: Boolean,
         default: false
+    },
+    isPublic: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 
