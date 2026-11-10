@@ -1,11 +1,10 @@
-<<<<<<< HEAD
 # Dependencies
 node_modules/
 
 # Environment variables
 .env
-Backend/.env
-Frontend/.env
+.env.*
+!.env.example
 
 # Build files
 dist/
@@ -13,20 +12,12 @@ build/
 
 # Uploaded files
 Backend/uploads/*
-!Backend/uploads/.gitkeep
+Backend/uploads/.gitkeep
+backend/uploads/*
+backend/uploads/.gitkeep
 
 # Logs
 *.log
 
 # System files
-=======
-node_modules/
-.env
-Frontend/.env
-Backend/.env
-Frontend/dist/
-Backend/uploads/*
-!Backend/uploads/.gitkeep
-*.log
->>>>>>> 2a62d71a166cc55d7fffafbdf8d28332ac3f59b7
 .DS_Store
