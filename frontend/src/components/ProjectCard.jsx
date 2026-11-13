@@ -1,24 +1,34 @@
-import React from "react";
-import "../css/App.css";
+import "../css/ProjectCard.css";
 
-export default function ProjectCard({ project, onOpen }) {
-    return (
-        <article className="project-card">
-            <div className="project-card-top">
-                <span className="project-symbol">⌘</span>
-                <span className={`status status-${(project.status || "Planning").toLowerCase().replace(" ", "-")}`}>
-                    {project.status}
-                </span>
-            </div>
-            <h3>{project.name}</h3>
-            <p>{project.description}</p>
-            <div className="tag-list">
-                {(project.technology || []).slice(0, 3).map((tech) => <span className="tag" key={tech}>{tech}</span>)}
-            </div>
-            <div className="project-card-bottom">
-                <span>{project.members?.length || 1} member(s)</span>
-                <button className="text-button" onClick={() => onOpen(project)}>Open project →</button>
-            </div>
-        </article>
-    );
+function ProjectCard({ project, onClick }) {
+  const name = project.name || project.title || "Untitled Project";
+  const description = project.description || "No description provided.";
+
+  return (
+    <article className="project-card">
+      <div className="project-card-top">
+        <span className="project-card-icon">{"</>"}</span>
+        <span className="project-card-status">
+          {project.status || "Active"}
+        </span>
+      </div>
+
+      <h3>{name}</h3>
+      <p>{description}</p>
+
+      <div className="project-card-footer">
+        <span>
+          {project.members?.length || 0} collaborators
+        </span>
+
+        {onClick && (
+          <button type="button" onClick={() => onClick(project)}>
+            View project <span aria-hidden="true">→</span>
+          </button>
+        )}
+      </div>
+    </article>
+  );
 }
+
+export default ProjectCard;

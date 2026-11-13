@@ -18,14 +18,15 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Allowed frontend origins
+const frontendDistPath = path.resolve(__dirname, "../frontend/dist");
+
 const allowedOrigins = [
     "http://localhost:5173",
     "http://localhost:5174",
+    "http://localhost:5001",
     "https://collabsphere-frontend-i4ov.onrender.com"
 ];
 
-// CORS configuration
 app.use(
     cors({
         origin: allowedOrigins,
@@ -34,19 +35,7 @@ app.use(
     })
 );
 
-// Middleware
 app.use(express.json({ limit: "2mb" }));
-
-// Serve uploaded files
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-// Backend welcome route
-app.get("/", (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Welcome to CollabSphere Backend API"
-    });
-});
 
 // API routes
 app.use("/api/auth", authRoutes);
@@ -55,7 +44,25 @@ app.use("/api/notes", noteRoutes);
 app.use("/api/files", fileRoutes);
 app.use("/api/gemini", geminiRoutes);
 
-// Handle undefined routes
+// Serve React frontend
+app.use(express.static(frontendDistPath));
+
+// React page navigation fallback
+app.use((req, res, next) => {
+    if (
+        req.method !== "GET" ||
+        req.path === "/api" ||
+        req.path.startsWith("/api/")
+    ) {
+        return next();
+    }
+
+    res.sendFile(path.join(frontendDistPath, "index.html"), (error) => {
+        if (error) next(error);
+    });
+});
+
+// API and other undefined routes
 app.use((req, res) => {
     res.status(404).json({
         success: false,
@@ -67,7 +74,11 @@ app.use((req, res) => {
 app.use((error, req, res, next) => {
     console.error("Server Error:", error.message);
 
-    res.status(error.status || 500).json({
+    const status = error.status ||
+        (error.code === "LIMIT_FILE_SIZE" ? 413 :
+            error.code === 11000 ? 409 :
+                error.name === "CastError" || error.name === "ValidationError" ? 400 : 500);
+    res.status(status).json({
         success: false,
         message: error.message || "Internal Server Error"
     });

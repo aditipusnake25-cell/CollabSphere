@@ -34,9 +34,11 @@ export const updateProject = async (req, res) => {
         const project = await Project.findById(req.params.id);
         if (!project) return res.status(404).json({ success: false, message: "Project not found" });
         if (project.createdBy.toString() !== req.user.id) return res.status(403).json({ success: false, message: "Only the creator can update this project" });
-        const allowed = ["name", "description", "technology", "status", "isPublic"];
+        const allowed = ["name", "description", "technology", "status", "isPublic", "readme", "readmeIsPublic"];
         allowed.forEach(key => { if (req.body[key] !== undefined) project[key] = req.body[key]; });
         await project.save();
+        await project.populate("createdBy", "name email");
+        await project.populate("members", "name email");
         res.json({ success: true, message: "Project updated", project });
     } catch (error) { res.status(500).json({ success: false, message: error.message }); }
 };
@@ -82,9 +84,18 @@ export const removeProjectMember = async (req, res) => {
 
 export const getPublicProject = async (req, res) => {
     try {
-        const project = await Project.findOne({ _id: req.params.id, isPublic: true }).populate("members", "name");
+        const project = await Project.findOne({ _id: req.params.id, isPublic: true })
+            .select("name description technology status createdAt readme readmeIsPublic");
         if (!project) return res.status(404).json({ success: false, message: "Public project not found" });
-        const notes = await Note.find({ project: project._id }).select("title content createdAt");
-        res.json({ success: true, project: { ...project.toObject(), notes } });
+        const publicProject = {
+            _id: project._id,
+            name: project.name,
+            description: project.description,
+            technology: project.technology,
+            status: project.status,
+            createdAt: project.createdAt,
+            ...(project.readmeIsPublic && project.readme ? { readme: project.readme } : {})
+        };
+        res.json({ success: true, project: publicProject });
     } catch (error) { res.status(500).json({ success: false, message: error.message }); }
 };

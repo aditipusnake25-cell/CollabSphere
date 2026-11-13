@@ -3,7 +3,6 @@
   padding: 15px;
   border-radius: 13px;
 }
-
 .recent-project-grid .project-card:hover { transform: translateY(-2px); }
 .recent-project-grid .project-card-icon { width: 34px; height: 34px; margin-bottom: 0; border-radius: 10px; font-size: 10px; }
 .recent-project-grid .project-card-status { font-size: 8px; }

@@ -1,1 +1,92 @@
-/* Team page uses the shared member-row and detail-panel styles. */
+.team-project-select {
+  display: grid;
+  grid-template-columns: minmax(130px, auto) minmax(220px, 1fr);
+  align-items: center;
+  gap: 12px;
+  max-width: 700px;
+  padding: 17px 19px;
+  margin-bottom: 19px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  box-shadow: var(--shadow-card);
+}
+
+.team-project-select label,
+.team-invite-card label {
+  color: #334155;
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.team-page select { max-width: 100%; }
+
+.team-invite-card {
+  padding: 21px 23px;
+  margin-bottom: 26px;
+  border: 1px solid #cdeeff;
+  border-radius: 15px;
+  background: linear-gradient(110deg, #f0f9ff, #f0fdf4);
+}
+
+.team-invite-card h2,
+.team-members-section h2 { margin: 0 0 15px; font-size: 15px; font-weight: 740; letter-spacing: -0.02em; }
+.team-invite-card form { display: grid; grid-template-columns: 1fr; gap: 9px; }
+.team-invite-card form > div { display: flex; gap: 9px; }
+.team-invite-card input { width: min(100%, 430px); min-height: 43px; padding: 10px 12px; border: 1px solid #dbe4ed; border-radius: 10px; outline: 0; background: white; font-size: 11px; }
+.team-invite-card input:focus { border-color: var(--sky); box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.11); }
+.team-invite-card form button { flex: 0 0 auto; }
+
+.team-members-section { margin-top: 30px; }
+.team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 225px), 1fr)); gap: 14px; }
+
+.team-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: white;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.025);
+  transition: transform 170ms ease, border-color 170ms ease, box-shadow 170ms ease;
+}
+
+.team-card:hover { transform: translateY(-2px); border-color: #b6e7fb; box-shadow: var(--shadow-card); }
+.team-avatar { display: grid; width: 43px; height: 43px; place-items: center; border: 2px solid white; border-radius: 14px; background: linear-gradient(145deg, #bae6fd, #dcfce7); box-shadow: 0 0 0 1px #e2e8f0; color: #0369a1; font-size: 16px; font-weight: 800; }
+.team-card h3 { margin: 13px 0 4px; color: var(--ink); font-size: 13px; font-weight: 730; }
+.team-card > p { margin: 0 0 11px; color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+.team-role { padding: 5px 8px; border: 1px solid #bbf7d0; border-radius: 20px; background: #f0fdf4; color: #15803d; font-size: 9px; font-weight: 720; }
+
+.team-contributions {
+  display: flex;
+  width: 100%;
+  gap: 8px;
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.team-contributions span { display: flex; flex: 1; align-items: baseline; gap: 5px; color: #94a3b8; font-size: 9px; }
+.team-contributions strong { color: #334155; font-size: 14px; }
+.team-remove-button { min-height: 32px; padding: 0 10px; margin-top: 12px; border: 1px solid #fecaca; border-radius: 8px; background: white; color: #dc2626; font-size: 10px; font-weight: 700; }
+.team-remove-button:hover:not(:disabled) { background: #fff1f2; }
+
+.team-error,
+.team-success { padding: 12px 14px; margin: 0 0 17px; border: 1px solid; border-radius: 10px; font-size: 11px; }
+.team-error { border-color: #fecaca; background: #fff1f2; color: #b91c1c; }
+.team-success { border-color: #bbf7d0; background: #f0fdf4; color: #15803d; }
+
+.team-empty { padding: 32px 22px; border: 1px dashed #cbd5e1; border-radius: 14px; background: white; text-align: center; }
+.team-empty h3 { margin: 0 0 7px; font-size: 14px; }
+.team-empty p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+
+@media (max-width: 600px) {
+  .team-project-select { grid-template-columns: 1fr; gap: 8px; padding: 15px; }
+  .team-invite-card { padding: 17px; }
+  .team-invite-card form > div { flex-direction: column; }
+  .team-invite-card input { width: 100%; }
+  .team-invite-card form button { width: 100%; }
+  .team-grid { grid-template-columns: 1fr; }
+}

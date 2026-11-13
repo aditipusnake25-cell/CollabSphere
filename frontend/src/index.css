@@ -1,2 +1,90 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
-:root{font-family:'DM Sans',sans-serif;color:#18181b;background:#f7f8f7;font-synthesis:none;text-rendering:optimizeLegibility}*{box-sizing:border-box}body{margin:0;min-width:320px}button,input,textarea,select{font:inherit}button{cursor:pointer}a{color:#047857;text-decoration:none}.muted{color:#71717a;line-height:1.6}.eyebrow{font-size:11px;font-weight:700;letter-spacing:1.5px;color:#047857;margin:0 0 8px}h1,h2,h3{font-family:Manrope,sans-serif;margin-top:0}h1{font-size:32px;margin-bottom:8px}h2{font-size:19px}h3{font-size:16px}
+:root {
+  font-family: Inter, "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #0f172a;
+  background: #f8fafc;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --sky: #38bdf8;
+  --sky-deep: #0284c7;
+  --sky-soft: #e0f2fe;
+  --green: #86efac;
+  --green-deep: #16a34a;
+  --green-soft: #dcfce7;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --surface: #ffffff;
+  --canvas: #f8fafc;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --shadow-card: 0 8px 26px rgba(15, 23, 42, 0.045);
+  --shadow-hover: 0 18px 36px rgba(2, 132, 199, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--canvas);
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(56, 189, 248, 0.35);
+  outline-offset: 3px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+a {
+  color: var(--sky-deep);
+}
+
+::selection {
+  background: #bae6fd;
+  color: var(--ink);
+}
+
+#root {
+  min-height: 100vh;
+}

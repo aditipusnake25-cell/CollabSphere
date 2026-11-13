@@ -2,18 +2,18 @@
 
 ### 1. Backend Setup
 
-Navigate to the Backend folder:
+Navigate to the backend folder:
 
 ```bash
-cd Backend
+cd backend
 npm install
 ```
 
-Create a `.env` file inside the Backend folder:
+Create a `.env` file inside the `backend` folder:
 
 ```env
 PORT=5000
-MONGO_URI=mongodb_connection_string
+MONGODB_URI=mongodb_connection_string
 JWT_SECRET=jwt_secret
 GEMINI_API_KEY=gemini_api_key
 ```
@@ -28,10 +28,10 @@ Backend runs at `http://localhost:5000`.
 
 ### 2. Frontend Setup
 
-Navigate to the Frontend folder:
+Navigate to the frontend folder:
 
 ```bash
-cd Frontend
+cd frontend
 npm install
 ```
 
